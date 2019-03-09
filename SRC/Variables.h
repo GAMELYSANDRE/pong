@@ -5,11 +5,12 @@
 int8_t ballX = 10;
 int8_t ballY = 10;
 uint8_t ballSize = 3;
-uint8_t ballSpeedX = 1.5;
-uint8_t ballSpeedY = 1.5;
+int8_t ballSpeedX = 2;
+int8_t ballSpeedY = 2;
+uint8_t ballState = 1;
 
 // Variables Bar Left
-uint8_t barLeftX = 1;
+uint8_t barLeftX = 0;
 uint8_t barLeftY = 20;
 uint8_t barLeftWidth = 4;
 uint8_t barLeftHeight = 12;
@@ -37,7 +38,9 @@ uint8_t positionMenu = 0;
 bool music = 0;
 
 // Variable Game
-int levelComputer = 3;
+uint8_t levelComputer = 2;
+uint8_t randomComputer = 0;
+uint8_t delayComputer = 0;
 
 // Menu table variables
 const char* startMenu[] = 
@@ -66,4 +69,10 @@ const char* optionMenuLevelGame[] =
   "NORMAL",
   "DIFFICILE"
 };
+const char* quitMenuVariable[] = 
+{
+  "OUI",
+  "NON"
+};
+
 #endif

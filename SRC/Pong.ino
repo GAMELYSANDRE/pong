@@ -38,7 +38,7 @@ void loop()
           case 3:
             positionMenu = 0;
             mode = 7;
-            break;  
+            break;
         }
         gb.sound.playTick();
       }
@@ -47,10 +47,10 @@ void loop()
 
       // show score
       gb.display.setColor(BLUE);
-      gb.display.setCursorX(32);
+      gb.display.setCursor(32, 2);
       gb.display.print(scorePlayerOne);
       gb.display.setColor(LIGHTGREEN);
-      gb.display.setCursorX(46);
+      gb.display.setCursor(46, 2);
       gb.display.print(scorePlayerTwo);
       gb.display.setColor(GRAY);
       gb.display.drawLine(40, 0, 40 , 65);
@@ -60,102 +60,196 @@ void loop()
       }
 
       // Movement of the ball according to the speed variables
-      ballX = ballX + ballSpeedX;
-      ballY = ballY + ballSpeedY;
+      // check the condition of the ball
+      switch (ballState)
+      {
+        case 0 :
+          ballX = barLeftWidth;
+          ballY = barLeftY + (barLeftHeight / 2 - ballSize / 2);
+          gb.display.setCursor(0, 56);
+          gb.display.setColor(RED);
+          gb.display.print("PRESSE FLECHE DROITE");
+          break;
+        case 1 :
+          ballX = ballX + ballSpeedX;
+          ballY = ballY + ballSpeedY;
+          if ( delayComputer != 0 )
+          {
+            delayComputer--;
+          }
+          break;
+        case 2 :
+          ballX = barRightX - barRightWidth;
+          ballY = barRightY + (barRightHeight / 2 - ballSize / 2);
+          if ( numberPlayer == 1 )
+          {
+            if ( delayComputer != 0 )
+            {
+              delayComputer--;
+            }
+            else
+            {
+              ballState = 1;
+            }
+            gb.display.setFontSize(3);
+            gb.display.setCursor(35, 25);
+            gb.display.setColor(RED);
+            gb.display.print(delayComputer / 6);
+          }
+          else
+          {
+            gb.display.setCursor(0, 56);
+            gb.display.setColor(RED);
+            gb.display.print("PRESSE BOUTON A et B");
+          }
+          break;
+      }
+
 
       // control the bar left
       // block the exit at the top of the screen
-      if (gb.buttons.repeat(BUTTON_UP, 0))
+      if (gb.buttons.repeat(BUTTON_UP, 0) && barLeftY > barLeftSpeed)
       {
-        if (barLeftY > 0) {
-          barLeftY = barLeftY - barLeftSpeed;
-        }
+        barLeftY = barLeftY - barLeftSpeed;
       }
       // block the exit at the bottom of the screen
-      if (gb.buttons.repeat(BUTTON_DOWN, 0))
+      if (gb.buttons.repeat(BUTTON_DOWN, 0) && barLeftY < gb.display.height() - barLeftHeight)
       {
-        if (barLeftY < gb.display.height() - barLeftHeight) {
-          barLeftY = barLeftY + barLeftSpeed;
-        }
+        barLeftY = barLeftY + barLeftSpeed;
       }
       // control the bar right
-      if ( numberPlayer == 2 ) {
+      if ( numberPlayer == 2 )
+      {
         // control of bar movements by a human
         // block the exit at the top of the screen
-        if (gb.buttons.repeat(BUTTON_B, 0)) {
-          if (barRightY > 0) {
-            barRightY = barRightY - barRightSpeed;
-          }
+        if (gb.buttons.repeat(BUTTON_B, 0) && barRightY > barRightSpeed)
+        {
+          barRightY = barRightY - barRightSpeed;
         }
         // block the exit at the bottom of the screen
-        if (gb.buttons.repeat(BUTTON_A, 0)) {
-          if (barRightY < gb.display.height() - barRightHeight) {
-            barRightY = barRightY + barRightSpeed;
-          }
+        if (gb.buttons.repeat(BUTTON_A, 0) && barRightY < gb.display.height() - barRightHeight)
+        {
+          barRightY = barRightY + barRightSpeed;
         }
       }
-      else if ( numberPlayer == 1 ) {
+      else if ( numberPlayer == 1 )
+      {
         // control of bar movements by a computer
-        if ( ballY < ( barRightY + barRightHeight / 2) && random (0, levelComputer) == 1 ) {
-          if (barRightY > 0) {
+        // movement of the bar during the game
+        if ( ballState == 1 )
+        {
+          if ( delayComputer != 0 )
+          {
+            randomComputer = 1;
+          }
+          else
+          {
+            randomComputer = random(0, levelComputer);
+          }
+          if ( ballY < ( barRightY + barRightHeight / 2) && barRightY > barRightSpeed && randomComputer == 1 )
+          {
             barRightY = barRightY - barRightSpeed;
           }
-        }
-        // control of bar movements by a computer
-        if ( ballY > ( barRightY + barRightHeight / 2) && random (0, levelComputer) == 1 ) {
-          if (barRightY < gb.display.height() - barRightHeight) {
+          if ( ballY > ( barRightY + barRightHeight / 2) && barRightY < gb.display.height() - barRightHeight && randomComputer == 1 )
+          {
             barRightY = barRightY + barRightSpeed;
+          }
+        }
+        // placement of the right bar following the left bar
+        else
+        {
+          if ( barLeftY > 0 && barLeftY < gb.display.height() / 2 && barRightY < gb.display.height() - (gb.display.height() / 4 + barRightHeight / 2 ) )
+          {
+            barRightY = barRightY + barRightSpeed;
+            if ( ballState == 0 )
+            {
+              delayComputer = 40;
+            }
+          }
+          if ( barLeftY > gb.display.height() / 2 && barLeftY < gb.display.height() && barRightY > 0 + (gb.display.height() / 4 - barRightHeight / 2 ) )
+          {
+            barRightY = barRightY - barRightSpeed;
+            if ( ballState == 0 )
+            {
+              delayComputer = 40;
+            }
           }
         }
       }
       // verif ball screen
       // if the ball goes to the right of the screen
-      if (ballX > gb.display.width() - ballSize  ) {
+      if (ballX > gb.display.width() - ballSize  )
+      {
         scorePlayerOne++;
-        ballX = 40;
-        ballY = 40;
-        Number_random = random(0, 2);
-        Number_random == 0 ? ballSpeedX *= -1 : ballSpeedX *= 1;
-        Number_random = random(0, 2);
-        Number_random == 0 ? ballSpeedY *= -1 : ballSpeedY *= 1;
+        ballState = 2;
+        delayComputer = 40;
         gb.sound.play("coins.wav");
       }
       // if the ball goes to the left of the screen
-      if (ballX < 0 ) {
+      if (ballX < 0 )
+      {
         scorePlayerTwo++;
-        ballX = 40;
-        ballY = 40;
-        Number_random = random(0, 2);
-        Number_random == 0 ? ballSpeedX *= -1 : ballSpeedX *= 1;
-        Number_random = random(0, 2);
-        Number_random == 0 ? ballSpeedY *= -1 : ballSpeedY *= 1;
+        ballState = 0;
+        delayComputer = 40;
         gb.sound.play("coins.wav");
       }
 
       // bounces the ball at the top of the screen
-      if (ballY > gb.display.height() - ballSize  ) {
+      if (ballY > gb.display.height() - ballSize  )
+      {
         ballSpeedY = -1 * ballSpeedY;
       }
       // bounces the ball at the bottom of the screen
-      if (ballY < 0 ) {
+      if (ballY < 0 )
+      {
         ballSpeedY = -1 * ballSpeedY;
       }
 
-      // tests the collisions with the ball and the left bar
-      if (  ballX <= barLeftX + barLeftWidth  ) {
-        if ( (ballY >= barLeftY) and (ballY <= barLeftY + barLeftHeight) ) {
-          ballSpeedX = -1 * ballSpeedX;
-          gb.sound.play("bonk.wav");
+      if ( ballState == 1 )
+      {
+        // tests the collisions with the ball and the left bar
+        if (  ballX == barLeftWidth  )
+        {
+          if ( (ballY >= barLeftY) and (ballY <= barLeftY + barLeftHeight) )
+          {
+            ballSpeedX = -1 * ballSpeedX;
+            gb.sound.play("bonk.wav");
+          }
+        }
+        // tests the collisions with the ball and the right bar
+        if (  ballX + ballSize >= barRightX and ballX + ballSize < gb.display.width()) 
+        {
+          if ( (ballY >= barRightY) and (ballY <= barRightY + barRightHeight) )
+          {
+            ballSpeedX = -1 * ballSpeedX;
+            gb.sound.play("bonk.wav");
+          }
         }
       }
-      // tests the collisions with the ball and the right bar
-      if (  ballX + ballSize >= barRightX  ) {
-        if ( (ballY >= barRightY) and (ballY <= barRightY + barRightHeight) ) {
+      if ( gb.buttons.pressed(BUTTON_RIGHT) && ballState == 0)
+      {
+        ballState = 1;
+        if ( ballSpeedX < 0 )
+        {
           ballSpeedX = -1 * ballSpeedX;
-          gb.sound.play("bonk.wav");
         }
       }
-
+      if ( gb.buttons.repeat(BUTTON_A,0) && gb.buttons.repeat(BUTTON_B,0) && ballState == 2)
+      {
+        ballState = 1;
+        if ( ballSpeedX < 0 )
+        {
+          ballSpeedX = -1 * ballSpeedX;
+        }
+      }
+      if ( gb.buttons.pressed(BUTTON_MENU) )
+      {
+        uint8_t quitMenu = gb.gui.menu("QUITTER LE JEU", quitMenuVariable);
+        if (quitMenu == 0)
+        {
+          mode = 0;
+        }
+      }
       // Draw the ball
       gb.display.setColor(YELLOW);
       gb.display.fillRect(ballX, ballY, ballSize, ballSize);
@@ -205,7 +299,7 @@ void loop()
         gb.display.print("JOUEUR 2");
       }
       gb.display.setCursor(15, 35);
-      gb.display.print("GAGNE !...");
+      gb.display.print("GAGNE !");
       if ( music == 0 ) {
         gb.sound.play("winning.wav");
         music = 1;
@@ -231,18 +325,24 @@ void loop()
             positionMenu = 0;
             ballSpeedX = 1;
             ballSpeedY = 1;
+            barLeftSpeed = 2;
+            barRightSpeed = 2;
             mode = 2;
             break;
           case 1:
             positionMenu = 0;
-            ballSpeedX = 1.5;
-            ballSpeedY = 1.5;
+            ballSpeedX = 2;
+            ballSpeedY = 2;
+            barLeftSpeed = 2;
+            barRightSpeed = 2;
             mode = 2;
             break;
           case 2:
             positionMenu = 0;
-            ballSpeedX = 2;
-            ballSpeedY = 2;
+            ballSpeedX = 3;
+            ballSpeedY = 3;
+            barLeftSpeed = 3;
+            barRightSpeed = 3;
             mode = 2;
             break;
         }
